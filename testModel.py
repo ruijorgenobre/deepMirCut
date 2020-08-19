@@ -9,7 +9,9 @@ from keras_contrib.layers import CRF
 from keras_contrib.utils import save_load_utils
 from keras_contrib import losses
 from keras_contrib import metrics
+from deepMirCut_metrics import avg_proximity_metric
 from seqeval.metrics import precision_score, recall_score, f1_score, classification_report
+import math
 import getopt
 
 def print_usage():
@@ -38,13 +40,67 @@ def print_usage():
 def load_input_output_file_parameters(parameters,opts={}):
     parameters["validation_file"] = opts['--validation_file'] if '--validation_file' in opts else None
     parameters["output_prefix"] = opts['--output_prefix'] if '--output_prefix' in opts else "results"
-    parameters["predictions_file"] = parameters["output_prefix"] + "_validation_predictions.txt"
+    parameters["predictions_file"] = parameters["output_prefix"] + "_predictions.txt"
     parameters["results_file"] = parameters["output_prefix"] + "_classificationReport.txt"
     parameters["param_out_file"] = parameters["output_prefix"] + "_parameters.txt"
     parameters["print_dvs"] = True if '--print_dvs' in opts else False
     if parameters["print_dvs"]:
         parameters["classification_DVs"] = parameters["output_prefix"] + "_classification_DVs.txt"
     return parameters
+
+def print_metrics_file(perf,output_file):
+    f = open(output_file,"w");
+    metric_list = ["TP","FP","FN","TN","precision","recall","fscore","specificity","mcc"]
+    f.write("\t".join(["cutsite"] + metric_list) + "\n")
+    for c in ["DR5","DC5","DC3","DR3"]:
+        metric_values = [c] + [perf[c][m] for m in metric_list]
+        f.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(*metric_values))
+    f.close()
+
+def get_classification_metrics(y_vl,y_pred,parameters):
+    idx_tag = {parameters['tag_idx'][k] : k for k in parameters['tag_idx']}
+    perf = {}
+    for c in parameters['tags']:
+        if c != 'O':
+            perf[c] = {d : 0 for d in ['TP','FP','FN','TN','support']}
+    for i in range(0,y_pred.shape[0]):
+        y_p = np.zeros_like(y_pred[i])
+        y_t = y_vl[i]
+        idx = y_pred[i].argmax(axis=0)
+        for k in range(1,len(idx)):
+            y_p[idx[k]][k] = 1
+            tag = idx_tag[k]
+            for j in range(0,y_p.shape[0]):
+                if y_p[j][k] == y_t[j][k] and y_t[j][k] != 0:
+                    perf[tag]['TP'] += 1
+                elif y_p[j][k] != y_t[j][k] and y_t[j][k] == 0:
+                    perf[tag]['FP'] += 1
+                elif y_p[j][k] != y_t[j][k] and y_p[j][k] == 0:
+                    perf[tag]['FN'] += 1
+                elif y_p[j][k] == y_t[j][k] and y_t[j][k] == 0:
+                    perf[tag]['TN'] += 1
+                else:
+                    print("error: get_performance\n",y_p[j][k],y_t[j][k]);
+            perf[tag]['support'] += 1
+    for c in parameters['tags']:
+        if c != 'O':
+            if perf[c]['TP'] > 0:
+                perf[c]['precision'] = perf[c]['TP'] / (perf[c]['TP'] + perf[c]['FP'])
+                perf[c]['recall'] = perf[c]['TP'] / (perf[c]['TP'] + perf[c]['FN'])
+                perf[c]['fscore'] = 2 * (perf[c]['precision'] * perf[c]['recall']) / (perf[c]['precision'] + perf[c]['recall'])
+            else:
+                perf[c]['precision'] = 0
+                perf[c]['recall'] = 0
+                perf[c]['fscore'] = 0
+            perf[c]['specificity'] = perf[c]['TN'] / (perf[c]['TN'] + perf[c]['FP'])
+            mcc_num = (perf[c]['TP'] * perf[c]['TN']) - (perf[c]['FP'] * perf[c]['FN'])
+            mcc_denom_unsqr = (perf[c]['TP'] + perf[c]['FP']) 
+            mcc_denom_unsqr *= (perf[c]['TP'] + perf[c]['FN'])
+            mcc_denom_unsqr *= (perf[c]['TN'] + perf[c]['FP'])
+            mcc_denom_unsqr *= (perf[c]['TN'] + perf[c]['FN'])
+            perf[c]['mcc'] = mcc_num / math.sqrt(mcc_denom_unsqr)
+    return perf
+
 
 if __name__ == "__main__":
     
@@ -84,7 +140,7 @@ if __name__ == "__main__":
     parameters = deepMirCut.load_parameters(opts)
     parameters = load_input_output_file_parameters(parameters,opts)
 
-    model = load_model(parameters["model"], custom_objects={'CRF': CRF, 'crf_loss': losses.crf_loss, 'crf_accuracy': metrics.crf_accuracy})
+    model = load_model(parameters["model"], custom_objects={'CRF': CRF, 'crf_loss': losses.crf_loss, 'crf_accuracy': metrics.crf_accuracy,'prox':avg_proximity_metric()})
     model.summary()
     validationSet = deepMirCut.readDataset(parameters["validation_file"],parameters)
     new_validationSet = deepMirCut.dropLongSequences(validationSet,parameters)
@@ -96,6 +152,8 @@ if __name__ == "__main__":
     deepMirCut.print_classification_report(validation_labels,pred_labels,parameters["results_file"])
     print("F1-score: {:.1%}".format(f1_score(validation_labels, pred_labels)))
     print(classification_report(validation_labels, pred_labels))
-
+    if parameters["output_prefix"] and parameters["label_by_max_position"]:
+        perf = get_classification_metrics(y_vl,validation_pred,parameters)
+        print_metrics_file(perf, parameters["output_prefix"] + "_metrics.txt")
     if parameters["print_dvs"]:
         deepMirCut.print_classification_values_file(new_validationSet,validation_pred,parameters,output_file=parameters["classification_DVs"])

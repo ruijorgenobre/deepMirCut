@@ -17,51 +17,23 @@ from hyperopt import fmin, tpe, hp, Trials, STATUS_OK, space_eval
 import getopt
 import pickle
 
+os.environ["CUDA_VISIBLE_DEVICES"]="0";
+
 opts = {}
 dmc_parameters = {}
 X_tr,y_tr,X_vl,y_vl = 0,0,0,0
 
+space_keys = ['embedding_dropout','embedding_layer_output','bi_lstm1_units','bi_lstm2_units','learning_rate','epsilon_exp']
 
-space_keys = ['batch_size','embedding_dropout','embedding_layer_output','bi_lstm1_units','dense1_units','bi_lstm2_units','dense2_units','optimizer',
-              'rms_learning_rate','rms_rho','rms_epsilon','adam_learning_rate','adam_beta_1','adam_beta_2','adam_epsilon','adam_amsgrad','nadam_learning_rate','nadam_beta_1','nadam_beta_2','nadam_epsilon','sgd_learning_rate',
-              'sgd_momentum','sgd_nesterov']
-
-search_space = {'batch_size': hp.choice('batch_size',[16,32,64,128]),
-                'embedding_dropout' : hp.uniform('embedding_dropout',0, 0.5),
+search_space = {'embedding_dropout' : hp.uniform('embedding_dropout',0, 0.5),
                 'embedding_layer_output' : hp.choice('embedding_layer_output',[32,64,96,128,160]),
-                'bi_lstm1_units' : hp.choice('bi_lstm1_units',[0,32,64,96,128,160]),
-                'dense1_units' : hp.choice('dense1_units',[0,32,64,96,128,160]),
+                'bi_lstm1_units' : hp.choice('bi_lstm1_units',[32,64,96,128,160]),
                 'bi_lstm2_units' : hp.choice('bi_lstm2_units',[0,32,64,96,128,160]),
-                'dense2_units' : hp.choice('dense2_units',[0,32,64,96,128,160]),
-                'optimizer' : hp.choice('optimizer',[
-                    {'type':'rmsprop',
-                     'rms_learning_rate' : hp.uniform('rms_learning_rate',1e-5,0.1),
-                     'rms_rho' : hp.uniform('rms_rho',0.6,1),
-                     'rms_epsilon' : hp.uniform('rms_epsilon', 1e-10, 1e-4)
-                    },
-                    {'type':'adam',
-                     'adam_learning_rate' : hp.uniform('adam_learning_rate',1e-5,0.1),
-                     'adam_beta_1' : hp.uniform('adam_beta_1',0.7,1),
-                     'adam_beta_2' : hp.uniform('adam_beta_2',0.7,1),
-                     'adam_epsilon' : hp.uniform('adam_epsilon',1e-10, 1e-4),
-                     'adam_amsgrad' : hp.choice('adam_amsgrad',[True,False]),
-                    },
-                    {'type':'nadam',
-                     'nadam_learning_rate' : hp.uniform('nadam_learning_rate',1e-5,0.1),
-                     'nadam_beta_1' : hp.uniform('nadam_beta_1',0.7,1),
-                     'nadam_beta_2' : hp.uniform('nadam_beta_2',0.7,1),
-                     'nadam_epsilon' : hp.uniform('nadam_epsilon',1e-10, 1e-4)
-                    },
-                    {'type':'sgd',
-                     'sgd_learning_rate' : hp.uniform('sgd_learning_rate',1e-5,0.1),
-                     'sgd_momentum' : hp.uniform('sgd_momentum',0.5,1),
-                     'sgd_nesterov' : hp.choice('sgd_nesterov',[True,False]),
-                    }])
-                }
+                'learning_rate' : hp.uniform('learning_rate',1e-5,0.1),
+                'epsilon_exp' : hp.uniform('epsilon_exp',-10,-4)}
 
 
-
-def print_to_pickle_file(trials,pickle_file="tuning.pickle"):
+def print_to_pickle_file(trials,pickle_file="tuning_adam.pickle"):
     f = open(pickle_file, 'wb')
     pickle.dump(trials,f)
 
@@ -70,16 +42,11 @@ def get_trial_vals(search_space,trial):
     trial_kv = space_eval(search_space,{k:v[0] for k,v in trial['misc']['vals'].items() if len(v) > 0})
     trial_vals = []
     for k in space_keys:
-        if k in trial_kv and k == 'optimizer':
-            trial_vals.append(trial_kv[k]['type'])
-        elif k in trial_kv['optimizer'].keys():
-            trial_vals.append(trial_kv['optimizer'][k])
-        elif k in trial_kv:
+        if k in trial_kv:
             trial_vals.append(trial_kv[k])
         else:
             trial_vals.append("na")
     return trial_vals
-
 
 def print_trials(search_space,trials,output_file="tuning_trials.txt"):
     trials_fd = open(output_file,"w");
@@ -93,7 +60,7 @@ def print_trials(search_space,trials,output_file="tuning_trials.txt"):
         trial_proximity = trial['result']['proximity']
         trial_status = trial['result']['status']
         trial_fScore = trial['result']['fScore']
-        trials_fd.write("%d\t%s\t%g\t%g\t%g\t%g\t%d\t%s\n" % (tid,"\t".join([str(x) for x in trial_vals]),optimizer_loss,trial_loss,trial_accuracy,trial_proximity,trial_fScore,trial_status))
+        trials_fd.write("%d\t%s\t%g\t%g\t%g\t%g\t%g\t%s\n" % (tid,"\t".join([str(x) for x in trial_vals]),optimizer_loss,trial_loss,trial_accuracy,trial_proximity,trial_fScore,trial_status))
     trials_fd.close()
 
 
@@ -121,26 +88,8 @@ def print_best_trial(search_space,trials,output_file="tuning_best_trial.txt"):
 
 def hyperopt_train_test(params):
 
-    optimizer = 0
-    if params['optimizer']['type'] == 'rmsprop':
-        optimizer = optimizers.rmsprop(lr=params['optimizer']['rms_learning_rate'],
-                                       rho=params['optimizer']['rms_rho'],
-                                       epsilon=params['optimizer']['rms_epsilon'])
-    elif params['optimizer']['type'] == 'adam':
-        optimizer = optimizers.adam(lr=params['optimizer']['adam_learning_rate'],
-                                    beta_1=params['optimizer']['adam_beta_1'], 
-                                    beta_2=params['optimizer']['adam_beta_2'],
-                                    epsilon=params['optimizer']['adam_epsilon'],
-                                    amsgrad=params['optimizer']['adam_amsgrad'])
-    elif params['optimizer']['type'] == 'nadam':
-        optimizer = optimizers.nadam(lr=params['optimizer']['nadam_learning_rate'],
-                                    beta_1=params['optimizer']['nadam_beta_1'], 
-                                    beta_2=params['optimizer']['nadam_beta_2'],
-                                    epsilon=params['optimizer']['nadam_epsilon'])
-    elif params['optimizer']['type'] == 'sgd':
-        optimizer = optimizers.sgd(lr=params['optimizer']['sgd_learning_rate'],
-                                   momentum=params['optimizer']['sgd_momentum'],
-                                   nesterov=params['optimizer']['sgd_nesterov'])
+    epsilon = 10 ** params['epsilon_exp']
+    optimizer = optimizers.adam(lr=params['learning_rate'],epsilon=epsilon)
     
     if dmc_parameters["use_embedding_layer"]:
         input = Input(shape=(dmc_parameters["max_seq_len"],))
@@ -151,12 +100,8 @@ def hyperopt_train_test(params):
         model = input
     if params['bi_lstm1_units'] > 0:
         model = Bidirectional(CuDNNLSTM(units=params['bi_lstm1_units'], return_sequences=True))(model)
-    if params['dense1_units'] > 0:
-        model = TimeDistributed(Dense(params['dense1_units'], activation="relu"))(model)
     if params['bi_lstm2_units'] > 0:
         model = Bidirectional(CuDNNLSTM(units=params['bi_lstm2_units'], return_sequences=True))(model)
-    if params['dense2_units'] > 0:
-        model = TimeDistributed(Dense(params['dense2_units'], activation="relu"))(model)
     if dmc_parameters["use_crf_layer"]:
         crf = CRF(dmc_parameters["num_tags"])  # CRF layer
         out = crf(model)  # output
@@ -168,8 +113,8 @@ def hyperopt_train_test(params):
         model.compile(optimizer=optimizer, loss="categorical_crossentropy", metrics=["accuracy",avg_proximity_metric()])
     model.summary()
     es = EarlyStopping(monitor='val_loss', min_delta=0, patience=dmc_parameters["patience"], verbose=False, mode='min', restore_best_weights=True)
-    history = model.fit(X_tr, np.array(y_tr),batch_size=params['batch_size'],epochs=dmc_parameters["epochs"],validation_data=(X_vl,np.array(y_vl)),verbose=False,shuffle=True,callbacks=[es])
-    loss, acc, prox = model.evaluate(x=X_vl, y=np.array(y_vl),batch_size=params['batch_size'], verbose=False)
+    history = model.fit(X_tr, np.array(y_tr),batch_size=dmc_parameters['batch_size'],epochs=dmc_parameters["epochs"],validation_data=(X_vl,np.array(y_vl)),verbose=False,shuffle=True,callbacks=[es])
+    loss, acc, prox = model.evaluate(x=X_vl, y=np.array(y_vl),batch_size=dmc_parameters['batch_size'], verbose=False)
     validation_labels = deepMirCut.pred2label(y_vl,dmc_parameters)
     validation_pred = model.predict(X_vl, verbose=False)
     pred_labels = deepMirCut.pred2label(validation_pred,dmc_parameters)
@@ -180,7 +125,7 @@ def f(params):
     loss, acc, prox,fScore = hyperopt_train_test(params)
     return {'loss': -fScore, 'real_loss': loss, 'accuracy':acc, 'proximity': prox, 'fScore': fScore , 'status': STATUS_OK}
 
-def run_trials(pickle_file="tuning.pickle",trials_step=25):
+def run_trials(pickle_file="tuning_adam.pickle",trials_step=25):
 
     max_evals = trials_step
     
@@ -196,9 +141,9 @@ def run_trials(pickle_file="tuning.pickle",trials_step=25):
     best = fmin(f, search_space, algo=tpe.suggest, max_evals=max_evals, trials=trials)
     print(space_eval(search_space,best))
 
-    print_to_pickle_file(trials,pickle_file="tuning.pickle")
-    print_trials(search_space,trials,output_file="tuning_trials.txt")
-    print_best_trial(search_space,trials,output_file="tuning_best_trial.txt")
+    print_to_pickle_file(trials,pickle_file=pickle_file)
+    print_trials(search_space,trials,output_file="tuning_trials_adam.txt")
+    print_best_trial(search_space,trials,output_file="tuning_best_trial_adam.txt")
 
 
 if __name__ == "__main__":
@@ -208,7 +153,7 @@ if __name__ == "__main__":
         exit()
     
     new_evals = int(sys.argv[3])
-    trial_step = 20
+    trial_step = 10000
 
     opts = {}
     opts['--verbose'] = True
@@ -219,6 +164,7 @@ if __name__ == "__main__":
     dmc_parameters = deepMirCut.load_parameters(opts)
     dmc_parameters['train_file'] = sys.argv[1]
     dmc_parameters['validation_file'] = sys.argv[2]
+    dmc_parameters['batch_size'] = 64
 
     trainSet = deepMirCut.readDataset(dmc_parameters["train_file"],dmc_parameters)
     new_trainSet = deepMirCut.dropLongSequences(trainSet,dmc_parameters)
@@ -228,7 +174,7 @@ if __name__ == "__main__":
     X_vl,y_vl = deepMirCut.prepareData(new_validationSet,dmc_parameters)
 
     while (trial_step < new_evals):
-        run_trials(pickle_file="tuning.pickle",trials_step=trial_step)
+        run_trials(pickle_file="tuning_adam.pickle",trials_step=trial_step)
         new_evals -= trial_step
 
-    run_trials(pickle_file="tuning.pickle",trials_step=new_evals)    
+    run_trials(pickle_file="tuning_adam.pickle",trials_step=new_evals)    
