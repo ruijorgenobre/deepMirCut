@@ -12,7 +12,6 @@ from keras_contrib import metrics
 from keras import backend as K
 from keras import activations
 from keras import optimizers
-#from deepMirCut_losses import position_mean_squared_error, mean_squared_error_test, mean_squared_error_test2, categorical_crossentropy_test2
 from deepMirCut_metrics import avg_proximity_metric
 from sklearn.model_selection import train_test_split
 from seqeval.metrics import precision_score, recall_score, f1_score, classification_report
@@ -89,13 +88,51 @@ def load_neural_network_parameters(parameters,opts={}):
     parameters["bi_lstm3_units"] = int(opts['--bi_lstm3_units']) if '--bi_lstm3_units' in opts else DEFAULTS["bi_lstm3_units"]
     return parameters
 
+def load_ensemble(parameters,ensemble_list):
+    parameters["ensemble"] = []
+    parameters["ensemble_weights"] = []
+    f = open(ensemble_list,"r")
+    ensemble_info = []
+    last_num_entries = -1
+    for line in f.readlines():
+        line_entries = line.rstrip().split()
+        if last_num_entries == -1:
+            last_num_entries = len(line_entries)
+        if len(line_entries) > last_num_entries:
+            print("Error: the number of weights do not match for each line in %s.  Make sure each entry is seperated by a single tab\n" % ensemble_list)
+            exit()
+        if len(line_entries) > 6:
+            print("Error: too many weights for line: %s\nMake sure each entry is seperated by a single tab\n" % str(line_entries))
+            exit()
+        if len(line_entries) <= 4 and len(line_entries) > 1:
+            print("Error: not enought weights for line: %s\nMake sure each entry is seperated by a single tab\n" % str(line_entries))
+            exit()
+        if len(line_entries) == 1:
+            print("warning: no weights found.  Equal weights will be applied accross all models.")
+        ensemble_info.append(line_entries)
+    for i in range(0,len(ensemble_info)):
+        if len(ensemble_info[i]) == 1:
+            parameters["ensemble"].append(str(ensemble_info[i][0]))
+            parameters["ensemble_weights"].append([1/len(ensemble_info) for _ in range(0,5)])
+        elif len(ensemble_info[i]) == 5:
+            parameters["ensemble"].append(str(ensemble_info[i][0]))
+            parameters["ensemble_weights"].append([1/len(ensemble_info)] + [float(ensemble_info[i][j]) for j in range(1,len(ensemble_info[i]))])
+        else:
+            parameters["ensemble"].append(str(ensemble_info[i][0]))
+            parameters["ensemble_weights"].append([float(ensemble_info[i][j]) for j in range(1,len(ensemble_info[i]))])
+    f.close()
+
 def load_parameters(opts={}):
     parameters = {}
     input_settings = {str(x):setting for x,setting in enumerate(INPUT_SETTING_LIST)}
     input_settings.update({v:v for v in input_settings.values()})
     parameters["input_setting"] = input_settings[opts['--input_setting']] if '--input_setting' in opts else DEFAULTS["input_setting"]
     parameters["max_seq_len"] = int(opts['--max_seq_len']) if '--max_seq_len' in opts else DEFAULTS["max_seq_len"]
-    parameters["model"] = opts['--model'] if '--model' in opts else DEFAULTS["model"]
+    #parameters["model"] = opts['--model'] if '--model' in opts else DEFAULTS["model"]
+    if '--ensemble_list' in opts:
+        load_ensemble(parameters,opts['--ensemble_list'])
+    elif '--model' in opts:
+        parameters["model"] = opts['--model']
     parameters["epochs"] = int(opts['--epochs']) if '--epochs' in opts else DEFAULTS["epochs"]
     parameters["verbose"] = True if '--verbose' in opts else DEFAULTS["verbose"]
     parameters["patience"] = int(opts['--patience']) if '--patience' in opts else DEFAULTS["patience"]
