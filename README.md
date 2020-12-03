@@ -62,7 +62,22 @@ $ python ../Scripts/plot_predictions.py  output_classification_DVs.txt examples.
 
 # Training Models
 
+The trainModel.py script was used to train the models contained in this github repositiory. 
 
+### Examples
+
+```sh
+python3 trainModel.py trainSet.txt -s validationSet.txt -m trained_model.model -o output --embedding_layer_output 32 --embedding_dropout 0.417 --bi_lstm1_units 64 --bi_lstm2_units 160 --learning_rate 0.00357 --epsilon 1.34896288259165e-07 --input_setting 2
+```
 
 # Testing Performance
 
+The testModel.py script may be used to test the performance of the trained model on a test or validation set.
+
+```sh
+python3 testModel.py testSet.txt -m trained_model.model -o output --input_setting 2
+```
+
+# Datasets
+
+Sample datasets and scripts used to produce them can be found in the [DeepMirCut_Data repository](https://github.com/JimBell/deepMirCut_data)
