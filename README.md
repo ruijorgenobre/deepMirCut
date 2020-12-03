@@ -6,7 +6,7 @@ All versions of python packages needed to run DeepMirCut can be found in the dee
 $ conda env create -f deepMirCut_env.yml file
 ```
 
-DeepMirCut works best when a dot-bracket fold and bpRNA structure array are provided.  Programs which fold RNA's and annotate thier loop structures can be found at the following links:
+DeepMirCut works best when a dot-bracket fold and bpRNA structure array are provided.  Programs which fold RNA's and annotate their loop structures can be found at the following links:
 
 * [The ViennaRNA Package](https://www.tbi.univie.ac.at/RNA/) - The ViennaRNA Package consists of several programs which are used to fold and compare RNA structures.   A program called RNAfold may be used to obtain a dot-bracket structure array.
 * [bpRNA](https://github.com/hendrixlab/bpRNA) -  The bpRNA script is a tool which is able to annotate the features of RNA secondary structures.
@@ -62,7 +62,7 @@ $ python ../Scripts/plot_predictions.py  output_classification_DVs.txt examples.
 
 # Training Models
 
-The trainModel.py script was used to train the models contained in this github repositiory. 
+The trainModel.py script was used to train the models contained in this github repository. 
 
 ### Examples
 
