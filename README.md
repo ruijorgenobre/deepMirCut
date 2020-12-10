@@ -11,9 +11,19 @@ DeepMirCut works best when a dot-bracket fold and bpRNA structure array are prov
 * [The ViennaRNA Package](https://www.tbi.univie.ac.at/RNA/) - The ViennaRNA Package consists of several programs which are used to fold and compare RNA structures.   A program called RNAfold may be used to obtain a dot-bracket structure array.
 * [bpRNA](https://github.com/hendrixlab/bpRNA) -  The bpRNA script is a tool which is able to annotate the features of RNA secondary structures.
 
+After installing the dependences run the following script to set up deep-mir-cut.  
+
+```sh
+$ bash setup.sh
+```
+
 # Data Preparation
 
-A script to prepare sequences for analysis will be uploaded shortly...
+The prepareData.pl script will take in a fasta file and will use RNAfold and bpRNA to find the dot-bracket and bpRNA structure array's. 
+
+```sh
+$ perl prepareData.pl examples.fa prepared_examples.txt
+```
 
 # Predicting miRNA Cleavage Sites
 
