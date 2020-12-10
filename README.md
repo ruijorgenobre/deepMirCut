@@ -6,12 +6,13 @@ All versions of python packages needed to run DeepMirCut can be found in the dee
 $ conda env create -f deepMirCut_env.yml file
 ```
 
-DeepMirCut works best when a dot-bracket fold and bpRNA structure array are provided.  Programs which fold RNA's and annotate their loop structures can be found at the following links:
+DeepMirCut works best when a dot-bracket fold and bpRNA structure array are provided.  Please install the following:
 
-* [The ViennaRNA Package](https://www.tbi.univie.ac.at/RNA/) - The ViennaRNA Package consists of several programs which are used to fold and compare RNA structures.   A program called RNAfold may be used to obtain a dot-bracket structure array.
-* [bpRNA](https://github.com/hendrixlab/bpRNA) -  The bpRNA script is a tool which is able to annotate the features of RNA secondary structures.
+* [The ViennaRNA Package](https://www.tbi.univie.ac.at/RNA/) - The ViennaRNA Package includes RNAfold, a program that folds sequences and returns their dot-bracket structure array.
+* [bpRNA](https://github.com/hendrixlab/bpRNA) -  The bpRNA script annotates the features of RNA secondary structures.
+* [Graph.pm](https://metacpan.org/pod/distribution/Graph/lib/Graph.pod) - A dependency needed to run bpRNA, available on CPAN
 
-After installing the dependences run the following script to set up deep-mir-cut.  
+After installing these dependencies run the following script to set up deep-mir-cut.  
 
 ```sh
 $ bash setup.sh
@@ -19,7 +20,7 @@ $ bash setup.sh
 
 # Data Preparation
 
-The prepareData.pl script will take in a fasta file and will use RNAfold and bpRNA to find the dot-bracket and bpRNA structure array's. 
+The prepareData.pl script takes in a fasta file and uses RNAfold and bpRNA to find the dot-bracket and bpRNA structure array for each sequence. 
 
 ```sh
 $ perl prepareData.pl examples.fa prepared_examples.txt
