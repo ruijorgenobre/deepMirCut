@@ -1,12 +1,14 @@
-# DeepMirCut
+# deep-mir-cut
+
+
 
 # Setup
-All versions of python packages needed to run DeepMirCut can be found in the deepMirCut_env.yml file.  The environment can be easily installed using conda.
+All versions of python packages needed to run deep-mir-cut can be found in the deepMirCut_env.yml file.  The environment can be easily installed using conda.
 ```sh
 $ conda env create -f deepMirCut_env.yml file
 ```
 
-DeepMirCut works best when a dot-bracket fold and bpRNA structure array are provided.  Please install the following:
+deep-mir-cut works best when a dot-bracket fold and bpRNA structure array are provided.  Please install the following dependencies:
 
 * [The ViennaRNA Package](https://www.tbi.univie.ac.at/RNA/) - The ViennaRNA Package includes RNAfold, a program that folds sequences and returns their dot-bracket structure array.
 * [bpRNA](https://github.com/hendrixlab/bpRNA) -  The bpRNA script annotates the features of RNA secondary structures.
