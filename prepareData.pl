@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 use Graph;
-do "./Scripts/bpRNA.pl";
+do "./bpRNA.pl";
 use strict;
 
 my $usage = "$0 <input fasta> <output file>\n";
