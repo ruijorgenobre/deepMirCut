@@ -57,7 +57,7 @@ $ python plot_predictions.py  output_classification_DVs.txt examples.txt ex4857
 Producing a 3D Graph of output:
 ```sh
 $ python3 deepMirCut_predict.py examples.txt -m seqBPRNA.model -o output --input_setting 2 -d
-$ python plot_predictions.py  output_classification_DVs.txt examples.txt ex4857
+$ python plot_predictions_3d.py  output_classification_DVs.txt examples.txt ex4857
 ```
 
 # Training Models
