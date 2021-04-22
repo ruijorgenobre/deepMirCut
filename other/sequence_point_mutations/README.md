@@ -2,7 +2,7 @@
 
 Point mutations were performed by running the following scripts in order:
 
-**createMutationSet&#46;pl** creates takes the test set (Metazoa\_testSet\_wFolds.txt) as input, and outputs several files with mutations for nucleotides surrounding each cutsite (Metazoa\_testSet\_wFolds.txt\_dicer3pMutations.txt, Metazoa\_testSet\_wFolds.txt\_dicer5pMutations.txt, Metazoa\_testSet\_wFolds.txt\_drosha3pMutations.txt, Metazoa\_testSet\_wFolds.txt\_drosha5pMutations.txt).
+**createMutationSet&#46;pl** takes the test set (Metazoa\_testSet\_wFolds.txt) as input, and outputs several files with mutations for nucleotides surrounding each cutsite (Metazoa\_testSet\_wFolds.txt\_dicer3pMutations.txt, Metazoa\_testSet\_wFolds.txt\_dicer5pMutations.txt, Metazoa\_testSet\_wFolds.txt\_drosha3pMutations.txt, Metazoa\_testSet\_wFolds.txt\_drosha5pMutations.txt).
 ```sh
 $ perl Scripts/createMutationSet.pl Metazoa_testSet_wFolds.txt
 ```
@@ -15,8 +15,7 @@ $ python3 ~/deepMirCut/getCutSiteScores.py Metazoa_testSet_wFolds.txt_drosha3pMu
 $ python3 ~/deepMirCut/getCutSiteScores.py Metazoa_testSet_wFolds.txt_drosha5pMutations.txt -m ~/deepMirCut/seqBPRNA.model
 ```
 
-**generatePointMutationFile\_wReverse&#46;pl** takes as input the original test set file (Metazoa\_testSet\_wFolds.txt), the scores found for the test set (Metazoa\_testSet\_wFolds.txt\_cutsite\_scores.txt), the scores for the mutated test set (Metazoa\_testSet\_wFolds.txt\_dicer3pMutations.txt\_cutsite_scores.txt), and the cutsit
-e to compare (DC3).  The script outputs a point mutation file (DC3\_pointMutations.txt) with the change in decision values for each mutation.
+**generatePointMutationFile\_wReverse&#46;pl** takes as input the original test set file (Metazoa\_testSet\_wFolds.txt), the scores found for the test set (Metazoa\_testSet\_wFolds.txt\_cutsite\_scores.txt), the scores for the mutated test set (Metazoa\_testSet\_wFolds.txt\_dicer3pMutations.txt\_cutsite_scores.txt), and the cutsite to perform point mutations on (DC3).  The script outputs a point mutation file (DC3\_pointMutations.txt) with the change in decision values for each mutation.
 ```sh
 $ perl Scripts/generatePointMutationFile_wReverse.pl Metazoa_testSet_wFolds.txt Metazoa_testSet_wFolds.txt_cutsite_scores.txt Metazoa_testSet_wFolds.txt_dicer3pMutations.txt_cutsite_scores.txt DC3
 $ perl Scripts/generatePointMutationFile_wReverse.pl Metazoa_testSet_wFolds.txt Metazoa_testSet_wFolds.txt_cutsite_scores.txt Metazoa_testSet_wFolds.txt_dicer5pMutations.txt_cutsite_scores.txt DC5
@@ -24,12 +23,12 @@ $ perl Scripts/generatePointMutationFile_wReverse.pl Metazoa_testSet_wFolds.txt 
 $ perl Scripts/generatePointMutationFile_wReverse.pl Metazoa_testSet_wFolds.txt Metazoa_testSet_wFolds.txt_cutsite_scores.txt Metazoa_testSet_wFolds.txt_drosha5pMutations.txt_cutsite_scores.txt DR5
 ```
 
-**getTrainingFrequencies&#46;pl** takes the training set as input (Metazoa\_trainSet\_wSimilar\_mult\_wFolds.txt), and returns a set of files with the frequencies of occurance for each nucleotide at positions surrounding around each cut site (DC3\_trainPerc.txt, DC5\_trainPerc.txt, DR3\_trainPerc.txt, DR5\_trainPerc.txt) as output.
+**getTrainingFrequencies&#46;pl** takes the training set as input (Metazoa\_trainSet\_wSimilar\_mult\_wFolds.txt), and returns a set of files with the frequencies of occurrence for each nucleotide at positions surrounding around each cut site (DC3\_trainPerc.txt, DC5\_trainPerc.txt, DR3\_trainPerc.txt, DR5\_trainPerc.txt) as output.
 ```sh
 $ perl Scripts/getTrainingFrequencies.pl Metazoa_trainSet_wSimilar_mult_wFolds.txt
 ```
 
-**analyzePointMutations\_tScores&#46;pl** takes a point mutation file (DC3\_pointMutations.txt), and a file giving the training percentage of each nucleodite for each position (DC3\_trainPerc.txt), and a minimum training frequency (in this case 5 percent).  Then it returns a file containing the mean difference for each type of mutation (DC3\_pointMutations.txt\_stats\_wTScore\_minTrainFreq5.txt), and the statistical significance for that mutation (C3\_pointMutations.txt\_stats\_wTScore\_minTrainFreq5\_pvals.txt)
+**analyzePointMutations\_tScores&#46;pl** takes a point mutation file (DC3\_pointMutations.txt), and a file giving the training percentage of each nucleotide for each position (DC3\_trainPerc.txt), and a minimum training frequency (in this case 5 percent).  Then it returns a file containing the mean difference for each type of mutation (DC3\_pointMutations.txt\_stats\_wTScore\_minTrainFreq5.txt), and the statistical significance for that mutation (C3\_pointMutations.txt\_stats\_wTScore\_minTrainFreq5\_pvals.txt)
 ```sh
 $ perl Scripts/analyzePointMutations_tScores.pl DC3_pointMutations.txt DC3_trainPerc.txt 5
 $ perl Scripts/analyzePointMutations_tScores.pl DC5_pointMutations.txt DC5_trainPerc.txt 5
