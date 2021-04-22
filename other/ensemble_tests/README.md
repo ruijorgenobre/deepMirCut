@@ -1,9 +1,9 @@
 
 # Scripts used in Ensemble testing
 
-Ensembles were analysed by running scripts in the following order:
+Ensembles were analyzed by running scripts in the following order:
 
-**deepMirCut/testEnsembles\_average\_models\_pmf&#46;py** tests pmf for a set of ensembles increasing in size from 1 to 20.  It outputs a file displaying the pmf for the ensemble (seqBPRNA\_unweighted\_pmf.txt) and the pmf for the individual unweighted models (seqBPRNA\_unweighted\_pmf\_single\_models.txt)
+**deepMirCut/testEnsembles\_average\_models\_pmf&#46;py** tests pmf for a set of ensembles increasing in size from 1 to 20.  It outputs a file displaying the pmf for each ensemble (seqBPRNA\_unweighted\_pmf.txt) and the pmf for the individual unweighted models (seqBPRNA\_unweighted\_pmf\_single\_models.txt)
 ```sh
 $ python3 ~/deepMirCut/testEnsembles_average_models_pmf.py Metazoa_validationSet_mult_wFolds.txt -L seqBPRNA_modelList.txt -o seqBPRNA -d --input_setting 2
 ```
@@ -23,7 +23,7 @@ $ python3 Scripts/graph_unweighted_ensemble_pmf.py seqBPRNA_unweighted_pmf.txt s
 python3 Scripts/graph_unweighted_ensemble_pse.py seqBPRNA_unweighted_pse.txt seqBPRNA_unweighted_pse_single_models.txt
 ```
 
-**deepMirCut/prepareEnsemble\_average\_models&#46;py** was used to prepare an ensemble of size 12
+**deepMirCut/prepareEnsemble\_average\_models&#46;py** is used to prepare an ensemble of a size indicated by the -n option (in this case 12)
 ```sh
 $ python3 ~/deepMirCut/prepareEnsemble_average_models.py Metazoa_validationSet_mult_wFolds.txt -L seqBPRNA_modelList.txt -o seqBPRNA -d --input_setting 2 -n 12
 ```
