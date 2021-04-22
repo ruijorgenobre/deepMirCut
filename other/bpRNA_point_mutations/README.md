@@ -24,12 +24,12 @@ $ perl Scripts/generatePointMutationFile_wReverse.pl Metazoa_testSet_wFolds.txt 
 $ perl Scripts/generatePointMutationFile_wReverse.pl Metazoa_testSet_wFolds.txt Metazoa_testSet_wFolds.txt_cutsite_scores.txt Metazoa_testSet_wFolds.txt_drosha5pMutations.txt_cutsite_scores.txt DR5
 ```
 
-**getTrainingFrequencies&#46;pl** takes the training set as input (Metazoa\_trainSet\_wSimilar\_mult\_wFolds.txt), and returns a set of files with the frequencies of occurance for each nucleotide at positions surrounding around each cut site (DC3\_trainPerc.txt, DC5\_trainPerc.txt, DR3\_trainPerc.txt, DR5\_trainPerc.txt) as outputs.
+**getTrainingFrequencies&#46;pl** takes the training set as input (Metazoa\_trainSet\_wSimilar\_mult\_wFolds.txt), and returns a set of files with the frequencies of occurrence for each nucleotide at positions surrounding around each cut site (DC3\_trainPerc.txt, DC5\_trainPerc.txt, DR3\_trainPerc.txt, DR5\_trainPerc.txt) as outputs.
 ```sh
-$ perl Scripts/getTrainingFrequencies.pl /nfs0/BB/Hendrix_Lab/MicroRNAs/deepMirCutDataSets/generateTrainTestSets/Metazoa_trainSet_wSimilar_mult_wFolds.txt
+$ perl Scripts/getTrainingFrequencies.pl Metazoa_trainSet_wSimilar_mult_wFolds.txt
 ```
 
-**analyzePointMutations\_bpRNA\_tScores2&#46;pl** takes a point mutation file (DC3\_pointMutations.txt), and a file giving the training percentage of each nucleodite for each position (DC3\_trainPerc.txt), and a minimum training frequency (in this case 5 percent).  Then it returns a file containing the mean difference for each type of mutation (DC3\_pointMutations.txt\_stats\_wTScore\_minTrainFreq5.txt), and the statistical significance for that mutation (C3\_pointMutations.txt\_stats\_wTScore\_minTrainFreq5\_pvals.txt)
+**analyzePointMutations\_bpRNA\_tScores2&#46;pl** takes a point mutation file (DC3\_pointMutations.txt), and a file giving the training percentage of each nucleotide for each position (DC3\_trainPerc.txt), and a minimum training frequency (in this case 5 percent).  Then it returns a file containing the mean difference for each type of mutation (DC3\_pointMutations.txt\_stats\_wTScore\_minTrainFreq5.txt), and the statistical significance for that mutation (C3\_pointMutations.txt\_stats\_wTScore\_minTrainFreq5\_pvals.txt)
 ```sh
 $ perl Scripts/analyzePointMutations_bpRNA_tScores2.pl DC3_pointMutations.txt trainSetFrequencies/DC3_trainPerc.txt 5
 $ perl Scripts/analyzePointMutations_bpRNA_tScores2.pl DC5_pointMutations.txt trainSetFrequencies/DC5_trainPerc.txt 5
