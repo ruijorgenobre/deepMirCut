@@ -2,7 +2,7 @@
 
 The Best Model was analysed by running scripts in the following order:
 
-Test set was evaluated with **deepMirCut/testModel&#46;py** using the ensemble with the -d flag set to output decision values. (You may need to change the path depending on where you have deepMirCut/testModel.py installed.)
+Test set was evaluated with **deepMirCut/testModel&#46;py** using the ensemble with the -d flag set so that it would output decision values. (You may need to change the path depending on where you have deepMirCut/testModel.py installed.)
 ```sh
 $ python3 ~/deepMirCut/testModel.py Metazoa_testSet_wFolds.txt -m seqBPRNA.model -o seqBPRNA -d --input_setting 2
 ```
